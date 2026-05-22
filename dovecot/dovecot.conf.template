@@ -1,0 +1,38 @@
+dovecot_config_version = 2.4.0
+dovecot_storage_version = 2.4.0
+
+protocols = imap
+listen = *
+
+mail_driver = maildir
+mail_path = /mail/Inbox
+
+auth_allow_cleartext = yes
+
+ssl_server_cert_file =
+ssl_server_key_file =
+
+passdb static {
+  passdb_static_password = ${DOVECOT_PASSWORD}
+  passdb_username_filter = ${USER_MAIL}
+}
+
+
+userdb static {
+  fields {
+    uid = 1000
+    gid = 1000
+    home = /mail
+  }
+}
+
+service imap-login {
+  chroot =
+  inet_listener imap {
+    port = 143
+  }
+}
+
+namespace inbox {
+  inbox = yes
+}

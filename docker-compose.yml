@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  mbsync:
+    image: alpine:latest
+    container_name: mbsync
+    volumes:
+      - ./mbsync:/config
+      - ./maildata:/mail
+    command: >
+      sh -c "apk add --no-cache isync ca-certificates && 
+      echo '*/1 * * * * mbsync -c /config/.mbsyncrc -a' > /etc/crontabs/root && 
+      crond -f -l 2"
+    restart: "no"
+
+  dovecot:
+    image: dovecot/dovecot:latest-root
+    container_name: dovecot
+    env_file:
+      - .env
+    command: >
+      sh -c "apt-get update -qq &&
+         apt-get install -y gettext-base -qq &&
+         envsubst < /etc/dovecot/dovecot.conf.template > /etc/dovecot/dovecot.conf &&
+         /dovecot/sbin/dovecot -F"
+    volumes:
+      - ./maildata:/mail
+      - ./dovecot/dovecot.conf.template:/etc/dovecot/dovecot.conf.template
+    ports:
+      - "143:143"
+    restart: unless-stopped
+
+  roundcube:
+    image: roundcube/roundcubemail:latest
+    container_name: roundcube
+    ports:
+      - "8080:80"
+    environment:
+      - ROUNDCUBEMAIL_DEFAULT_HOST=dovecot
+      - ROUNDCUBEMAIL_DEFAULT_PORT=143
+      - ROUNDCUBEMAIL_DB_TYPE=sqlite
+      - ROUNDCUBEMAIL_SMTP_SERVER=ssl://smtp.gmail.com
+      - ROUNDCUBEMAIL_SMTP_PORT=465
+      - ROUNDCUBEMAIL_SMTP_USER=${USER_MAIL}
+      - ROUNDCUBEMAIL_SMTP_PASS=${PASS}
+      - ROUNDCUBEMAIL_SMTP_AUTH_TYPE=LOGIN
+      - ROUNDCUBEMAIL_USERNAME_DOMAIN=${USER_NAME_DOMAIN}
+    depends_on:
+      - dovecot
+    volumes:
+      - ./roundcube-config/config.inc.php:/var/www/html/config/config.inc.php
+    restart: unless-stopped
+
+# volumes:
+#   maildata:
+#     driver: local

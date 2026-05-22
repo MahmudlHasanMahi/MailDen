@@ -1,0 +1,23 @@
+
+IMAPAccount gmail
+Host imap.gmail.com
+User ${EMAIL}
+Pass ${APP_PASS}
+TLSType IMAPS
+CertificateFile /etc/ssl/certs/ca-certificates.crt
+
+IMAPStore gmail-remote
+Account gmail
+
+MaildirStore gmail-local
+SubFolders Verbatim
+Path /mail/
+Inbox /mail/Inbox
+
+Channel gmail
+Far :gmail-remote:
+Near :gmail-local:
+Patterns *
+Expunge None
+SyncState *
+Create Both
