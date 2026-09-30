@@ -1,4 +1,6 @@
 .env
 notes.txt
 mbsync/.mbsyncrc
+dovecot/dovecot.conf
 maildata
+.DS_Store

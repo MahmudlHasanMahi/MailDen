@@ -1,4 +1,4 @@
-version: "3.8"
+version: "2.8"
 
 services:
   mbsync:
@@ -18,14 +18,9 @@ services:
     container_name: dovecot
     env_file:
       - .env
-    command: >
-      sh -c "apt-get update -qq &&
-         apt-get install -y gettext-base -qq &&
-         envsubst < /etc/dovecot/dovecot.conf.template > /etc/dovecot/dovecot.conf &&
-         /dovecot/sbin/dovecot -F"
     volumes:
       - ./maildata:/mail
-      - ./dovecot/dovecot.conf.template:/etc/dovecot/dovecot.conf.template
+      - ./dovecot/dovecot.conf:/etc/dovecot/dovecot.conf
     ports:
       - "143:143"
     restart: unless-stopped
@@ -45,12 +40,13 @@ services:
       - ROUNDCUBEMAIL_SMTP_PASS=${PASS}
       - ROUNDCUBEMAIL_SMTP_AUTH_TYPE=LOGIN
       - ROUNDCUBEMAIL_USERNAME_DOMAIN=${USER_NAME_DOMAIN}
+      - ROUNDCUBEMAIL_SKIN=elastic-custom
     depends_on:
       - dovecot
     volumes:
+      - roundcube_html:/var/www/html
       - ./roundcube-config/config.inc.php:/var/www/html/config/config.inc.php
+      - ./roundcube-skin-custom:/var/www/html/skins/elastic-custom
     restart: unless-stopped
-
-# volumes:
-#   maildata:
-#     driver: local
+volumes:
+  roundcube_html:
